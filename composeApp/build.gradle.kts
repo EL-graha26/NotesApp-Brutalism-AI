@@ -1,6 +1,7 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -9,6 +10,7 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
     id("app.cash.sqldelight") version "2.0.1"
+    kotlin("plugin.serialization") version "1.9.23"
 }
 
 kotlin {
@@ -35,11 +37,13 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.activity.compose)
             implementation("app.cash.sqldelight:android-driver:2.0.1")
-            implementation("io.insert-koin:koin-android:3.5.3") //
-            implementation("io.insert-koin:koin-androidx-compose:3.5.3") //
+            implementation("io.insert-koin:koin-android:3.5.3")
+            implementation("io.insert-koin:koin-androidx-compose:3.5.3")
+            implementation("io.ktor:ktor-client-okhttp:2.3.9")
         }
         iosMain.dependencies {
             implementation("app.cash.sqldelight:native-driver:2.0.1")
+            implementation("io.ktor:ktor-client-darwin:2.3.9")
         }
 
         commonMain.dependencies {
@@ -60,8 +64,12 @@ kotlin {
             implementation("com.russhwolf:multiplatform-settings-coroutines:1.1.1")
             implementation("app.cash.sqldelight:runtime:2.0.1")
             implementation("app.cash.sqldelight:coroutines-extensions:2.0.1")
-            implementation("io.insert-koin:koin-core:3.5.3") //
-            implementation("io.insert-koin:koin-compose:1.1.2") //
+            implementation("io.insert-koin:koin-core:3.5.3")
+            implementation("io.insert-koin:koin-compose:1.1.2")
+            implementation("io.ktor:ktor-client-core:2.3.9")
+            implementation("io.ktor:ktor-client-content-negotiation:2.3.9")
+            implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.9")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -79,7 +87,19 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
+
+        val localProps = project.rootProject.file("local.properties")
+        val properties = Properties()
+        if (localProps.exists()) {
+            properties.load(localProps.inputStream())
+        }
+        buildConfigField("String", "GEMINI_API_KEY", "\"${properties.getProperty("GEMINI_API_KEY", "KOSONG")}\"")
     }
+
+    buildFeatures {
+        buildConfig = true
+    }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"

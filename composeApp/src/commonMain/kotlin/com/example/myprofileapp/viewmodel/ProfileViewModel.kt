@@ -28,7 +28,6 @@ class ProfileViewModel(private val settingsManager: SettingsManager) : ViewModel
     }
 
     fun toggleDarkMode(isDark: Boolean) {
-        // Simpan ke DataStore, nanti init{} di atas bakal otomatis nangkep perubahannya
         viewModelScope.launch {
             settingsManager.setDarkMode(isDark)
         }
