@@ -1,5 +1,9 @@
 package com.example.myprofileapp.screens
 
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.serialization.kotlinx.json.*
+import kotlinx.serialization.json.Json
+import kotlinx.coroutines.launch
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -362,9 +366,20 @@ fun NoteDetailScreen(note: Note?, isDarkMode: Boolean, onBack: () -> Unit, onEdi
     val bgColor = if (isDarkMode) NeuBgDark else NeuBgLight
     val textColor = if (isDarkMode) Color.White else NeuBorder
 
-    // Siapkan Mesin AI khusus untuk membaca catatan ini
+    // Memperbaiki Coroutine Scope
     val scope = rememberCoroutineScope()
-    val aiService = remember { com.example.myprofileapp.platform.AiService(io.ktor.client.HttpClient { install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) { io.ktor.serialization.kotlinx.json.json(kotlinx.serialization.json.Json { ignoreUnknownKeys = true }) } }) }
+
+    // Memperbaiki inisialisasi AI Service dengan import yang benar
+    val aiService = remember {
+        com.example.myprofileapp.platform.AiService(
+            io.ktor.client.HttpClient {
+                install(ContentNegotiation) {
+                    json(Json { ignoreUnknownKeys = true })
+                }
+            }
+        )
+    }
+
     var aiSummary by remember { mutableStateOf<String?>(null) }
     var isAiLoading by remember { mutableStateOf(false) }
 
@@ -403,11 +418,12 @@ fun NoteDetailScreen(note: Note?, isDarkMode: Boolean, onBack: () -> Unit, onEdi
 
             Text(note.content, fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f), color = textColor.copy(alpha = 0.9f), lineHeight = 30.sp)
 
+            // Tombol Rangkum AI
             Box(modifier = Modifier.padding(bottom = 16.dp).clickable {
                 if (!isAiLoading) {
                     isAiLoading = true
+                    // Panggil suspend function di dalam scope
                     scope.launch {
-                        // AI Prompt: Memaksa AI membaca konteks catatan yang sedang dibuka
                         val prompt = "Tolong rangkum catatan ini menjadi 2 atau 3 poin penting yang singkat. Judul: ${note.title}. Isi: ${note.content}"
                         aiSummary = aiService.sendMessage(prompt)
                         isAiLoading = false

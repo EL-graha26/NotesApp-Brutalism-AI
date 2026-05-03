@@ -10,13 +10,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BatteryFull
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.PhoneAndroid
-import androidx.compose.material.icons.filled.Power
-import androidx.compose.material.icons.filled.SystemUpdate
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,11 +19,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.myprofileapp.components.EditProfileDialog
+import androidx.compose.ui.window.Dialog
 import com.example.myprofileapp.data.ProfileUiState
 import myprofileapp.composeapp.generated.resources.Res
 import myprofileapp.composeapp.generated.resources.download
@@ -51,117 +46,25 @@ fun ProfileScreen(uiState: ProfileUiState, onEditProfile: (String, String) -> Un
     val batteryInfo: com.example.myprofileapp.platform.BatteryInfo = koinInject()
     val batteryLevel by batteryInfo.observeBatteryLevel().collectAsState(initial = 0)
     val isCharging by batteryInfo.observeChargingStatus().collectAsState(initial = false)
-
     val isDark = uiState.isDarkMode
     val bgColor = if (isDark) NeuBgDarkProfile else NeuBgLightProfile
     val cardColor = if (isDark) Color(0xFF2C2C2C) else Color.White
     val textColor = if (isDark) Color.White else NeuBorderProfile
 
     if (showEditDialog) {
-        fun EditProfileDialog(
-            currentName: String,
-            currentBio: String,
-            isDark: Boolean,
-            onDismiss: () -> Unit,
-            onSave: (String, String) -> Unit
-        ) {
-            var name by remember { mutableStateOf(currentName) }
-            var bio by remember { mutableStateOf(currentBio) }
-
-            Dialog(onDismissRequest = onDismiss) {
-                Box(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
-                    // Efek Bayangan Kaku (Brutalism Shadow)
-                    Box(
-                        modifier = Modifier
-                            .matchParentSize()
-                            .offset(8.dp, 8.dp)
-                            .background(NeuBorderDialog, RoundedCornerShape(12.dp))
-                    )
-
-                    // Kotak Utama
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color.White, RoundedCornerShape(12.dp))
-                            .border(4.dp, NeuBorderDialog, RoundedCornerShape(12.dp))
-                            .padding(24.dp)
-                    ) {
-                        Text(
-                            text = "EDIT PROFIL",
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Black,
-                            color = NeuBorderDialog,
-                            modifier = Modifier.padding(bottom = 16.dp)
-                        )
-
-                        // Input Nama
-                        Text("Nama Lengkap", fontWeight = FontWeight.Bold, color = NeuBorderDialog)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Box {
-                            Box(modifier = Modifier.matchParentSize().offset(4.dp, 4.dp).background(NeuBorderDialog, RoundedCornerShape(8.dp)))
-                            OutlinedTextField(
-                                value = name,
-                                onValueChange = { name = it },
-                                modifier = Modifier.fillMaxWidth().background(Color.White, RoundedCornerShape(8.dp)).border(3.dp, NeuBorderDialog, RoundedCornerShape(8.dp)),
-                                textStyle = TextStyle(color = NeuBorderDialog, fontWeight = FontWeight.Bold),
-                                colors = TextFieldDefaults.colors(focusedContainerColor = Color.White, unfocusedContainerColor = Color.White, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent),
-                                singleLine = true
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // Input Bio
-                        Text("Bio", fontWeight = FontWeight.Bold, color = NeuBorderDialog)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Box {
-                            Box(modifier = Modifier.matchParentSize().offset(4.dp, 4.dp).background(NeuBorderDialog, RoundedCornerShape(8.dp)))
-                            OutlinedTextField(
-                                value = bio,
-                                onValueChange = { bio = it },
-                                modifier = Modifier.fillMaxWidth().background(Color.White, RoundedCornerShape(8.dp)).border(3.dp, NeuBorderDialog, RoundedCornerShape(8.dp)),
-                                textStyle = TextStyle(color = NeuBorderDialog, fontWeight = FontWeight.Bold),
-                                colors = TextFieldDefaults.colors(focusedContainerColor = Color.White, unfocusedContainerColor = Color.White, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent),
-                                maxLines = 3
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(24.dp))
-
-                        // Tombol Action
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End
-                        ) {
-                            Button(
-                                onClick = onDismiss,
-                                colors = ButtonDefaults.buttonColors(containerColor = NeuPinkDialog),
-                                shape = RoundedCornerShape(8.dp),
-                                modifier = Modifier.border(3.dp, NeuBorderDialog, RoundedCornerShape(8.dp)),
-                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-                            ) {
-                                Text("Batal", color = NeuBorderDialog, fontWeight = FontWeight.Black)
-                            }
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Button(
-                                onClick = { onSave(name, bio) },
-                                colors = ButtonDefaults.buttonColors(containerColor = NeuGreenDialog),
-                                shape = RoundedCornerShape(8.dp),
-                                modifier = Modifier.border(3.dp, NeuBorderDialog, RoundedCornerShape(8.dp)),
-                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-                            ) {
-                                Text("Simpan", color = NeuBorderDialog, fontWeight = FontWeight.Black)
-                            }
-                        }
-                    }
-                }
+        EditProfileDialog(
+            currentName = uiState.name,
+            currentBio = uiState.bio,
+            onDismiss = { showEditDialog = false },
+            onSave = { name, bio ->
+                onEditProfile(name, bio)
+                showEditDialog = false
             }
-        }
+        )
     }
 
     Column(modifier = Modifier.fillMaxSize().background(bgColor).verticalScroll(scrollState).padding(bottom = 80.dp)) {
         GlobalOfflineBanner()
-
         Column(modifier = Modifier.fillMaxWidth().padding(top = 40.dp, bottom = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Box(modifier = Modifier.size(120.dp)) {
                 Box(modifier = Modifier.matchParentSize().offset(6.dp, 6.dp).background(NeuBorderProfile, CircleShape))
@@ -191,7 +94,6 @@ fun ProfileScreen(uiState: ProfileUiState, onEditProfile: (String, String) -> Un
                 }
             }
         }
-
         Text("PENGATURAN", fontSize = 20.sp, fontWeight = FontWeight.Black, color = textColor, modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp))
         Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp)) {
             Box(modifier = Modifier.matchParentSize().offset(6.dp, 6.dp).background(NeuBorderProfile, RoundedCornerShape(12.dp)))
@@ -213,6 +115,7 @@ fun ProfileScreen(uiState: ProfileUiState, onEditProfile: (String, String) -> Un
             }
         }
 
+        // PERANGKAT
         Spacer(modifier = Modifier.height(16.dp))
         Text("PERANGKAT", fontSize = 20.sp, fontWeight = FontWeight.Black, color = textColor, modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp))
         Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp)) {
@@ -223,7 +126,6 @@ fun ProfileScreen(uiState: ProfileUiState, onEditProfile: (String, String) -> Un
                 ContactItem(Icons.Default.SystemUpdate, "Sistem Operasi", deviceInfo.getOsVersion(), textColor)
             }
         }
-
         Spacer(modifier = Modifier.height(16.dp))
         Text("BATERAI", fontSize = 20.sp, fontWeight = FontWeight.Black, color = textColor, modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp))
         Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp)) {
@@ -249,6 +151,55 @@ fun ProfileScreen(uiState: ProfileUiState, onEditProfile: (String, String) -> Un
             }
         }
         Spacer(modifier = Modifier.height(24.dp))
+    }
+}
+@Composable
+fun EditProfileDialog(currentName: String, currentBio: String, onDismiss: () -> Unit, onSave: (String, String) -> Unit) {
+    var name by remember { mutableStateOf(currentName) }
+    var bio by remember { mutableStateOf(currentBio) }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Box(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
+            // Shadow
+            Box(modifier = Modifier.matchParentSize().offset(8.dp, 8.dp).background(NeuBorderProfile, RoundedCornerShape(12.dp)))
+
+            Column(modifier = Modifier.fillMaxWidth().background(Color.White, RoundedCornerShape(12.dp)).border(4.dp, NeuBorderProfile, RoundedCornerShape(12.dp)).padding(24.dp)) {
+                Text("EDIT PROFIL", fontSize = 24.sp, fontWeight = FontWeight.Black, color = NeuBorderProfile)
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text("Nama", fontWeight = FontWeight.Bold)
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = TextStyle(fontWeight = FontWeight.Bold)
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text("Bio", fontWeight = FontWeight.Bold)
+                OutlinedTextField(
+                    value = bio,
+                    onValueChange = { bio = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = TextStyle(fontWeight = FontWeight.Bold)
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    TextButton(onClick = onDismiss) { Text("BATAL", fontWeight = FontWeight.Black, color = Color.Gray) }
+                    Button(
+                        onClick = { onSave(name, bio) },
+                        colors = ButtonDefaults.buttonColors(containerColor = NeuGreenProfile),
+                        modifier = Modifier.border(2.dp, NeuBorderProfile, RoundedCornerShape(8.dp)),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text("SIMPAN", color = NeuBorderProfile, fontWeight = FontWeight.Black)
+                    }
+                }
+            }
+        }
     }
 }
 
